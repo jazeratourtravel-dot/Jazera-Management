@@ -1034,12 +1034,75 @@ function previewInvoice(inv, mode) {
   });
 
   document.getElementById('inv-render-area').innerHTML = `
-    <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:420px;margin:0 auto">
-      <div style="text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid ${accentBg}">
-        <div style="font-size:22px;font-weight:900;color:${accentBg};letter-spacing:2px">JAZERA</div>
-        <div style="font-size:11px;color:#777;letter-spacing:1px;margin-top:2px">TRAVEL AGENCY</div>
-        <div style="font-size:9px;color:#aaa;margin-top:4px">Flight Tickets • Visa & Landing Arrangement • Tour Packages</div>
-      </div>
+    <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:500px;margin:0 auto">
+      <div style="
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin-bottom:16px;
+    padding-bottom:14px;
+    border-bottom:2px solid ${accentBg};
+">
+
+    <img src="logo1.png"
+         style="
+            width:60px;
+            height:60px;
+            object-fit:contain;
+            flex-shrink:0;
+         ">
+
+    <div style="flex:1">
+
+        <div style="
+            font-family:Cambria, Georgia, 'Times New Roman', serif;
+            font-size:26px;
+            font-weight:900;
+            color:${accentBg};
+            letter-spacing:2px;
+            line-height:1;
+        ">
+            JAZERA
+        </div>
+
+        <div style="
+            font-size:12px;
+            color:#666;
+            letter-spacing:2px;
+            margin-top:3px;
+        ">
+            Travel Agency
+        </div>
+
+        <div style="
+            font-size:10px;
+            color:#999;
+            margin-top:5px;
+        ">
+            Flight Tickets • Visa & Landing Arrangement • Tour Packages
+        </div>
+
+        <div style="
+            font-size:9px;
+            color:#666;
+            margin-top:7px;
+        ">
+            📍 Al Khalifa Al Zaher St. Bld.60/1, 7th District, Nasr City, Cairo
+        </div>
+
+        <div style="
+            font-size:9px;
+            color:#666;
+            margin-top:3px;
+        ">
+            ☎ +62 85781707662 &nbsp;&nbsp;|&nbsp;&nbsp;
+            +20 1095791053 &nbsp;&nbsp;|&nbsp;&nbsp;
+            ✉ jazeratourtravel@gmail.com
+        </div>
+
+    </div>
+
+</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <div style="font-size:24px;font-weight:900;color:${accentBg}">INVOICE</div>
         <span style="background:${sbg};color:${sfg};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">${t.status.toUpperCase()}</span>
@@ -1080,7 +1143,7 @@ function previewInvoice(inv, mode) {
         🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION
       </div>
       <div style="text-align:center;font-size:10px;color:#aaa;font-style:italic;padding-top:10px;border-top:1px dashed #eee">
-        Thank you for trusting Jazera Travel Agency! 🙏
+        Thank you for trusting Jazera Travel Agency!
       </div>
     </div>`;
 
