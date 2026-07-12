@@ -705,7 +705,7 @@ function invCard(t) {
       <span style="font-size:13px;font-weight:700;color:var(--red)">${fmt(t.balance)}</span>
     </div>` : ''}
     ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:8px;font-style:italic">📝 ${t.notes}</div>`:''}
-    <div class="inv-bank">🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION<br>📱 Confirm: +62 857-8170-7662</div>
+    <div class="inv-bank">🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION</div>
     <div class="inv-footer-text">Thank you for trusting Jazera Travel Agency! 🙏</div>
     <div class="inv-actions">
       <button class="btn btn-outline btn-sm" onclick="copyInv('${t.inv}')">📋 Copy</button>
@@ -914,9 +914,8 @@ function shareInv(inv) {
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `🏦 BCA · 1450130733`,
     `a.n. HUSNI ISKANDAR NASUTION`,
-    `📱 Konfirmasi: +62 857-8170-7662`,
     ``,
-    `_Terima kasih telah mempercayakan perjalanan Anda kepada Jazera Travel Agency! 🙏_`
+    `_Terima kasih telah memilih Jazera Travel Agency sebagai rekan perjalanan Anda!_`
   ];
   const text = lines.join('\n');
   if (navigator.share) {
