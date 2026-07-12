@@ -458,7 +458,18 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
     </button>
   </div>
 </div>
-<!-- PROFILE MODAL -->
+<!-- EDIT TRANSACTION MODAL -->
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal-sheet" style="max-height:90vh">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin-bottom:0">✏️ Edit Transaction</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div id="edit-body"></div>
+  </div>
+</div>
+  <!-- PROFILE MODAL -->
 <div class="modal-overlay" id="modal-profile">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -596,6 +607,12 @@ function txnRow(t) {
     <div class="txn-right">
       <div class="txn-amount">${fmt(t.totalPrice)}</div>
       <span class="status-badge ${sc}">${t.status}</span>
+      <div style="margin-top:4px">
+        <button onclick="event.stopPropagation();openEditModal('${t.inv}')"
+          style="background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:10px;cursor:pointer;color:var(--muted)">
+          ✏️ Edit
+        </button>
+      </div>
     </div>
   </div>`;
 }
@@ -1018,7 +1035,7 @@ function previewInvoice(inv, mode) {
   const sbg      = t.status === 'Paid' ? '#FFF8DC' : (t.status === 'Unpaid' ? '#FDECEA' : '#FFF3CD');
   const sfg      = t.status === 'Paid' ? '#7D5A00' : (t.status === 'Unpaid' ? '#C0392B' : '#E67E22');
   const slbl     = t.type === 'Flight Ticket' ? '✈ Flight Ticket' : (t.type === 'Visa & LA' ? '🛂 Visa & LA' : '🔀 Combined');
-  const accentBg = t.type === 'Flight Ticket' ? '#8B0000' : (t.type === 'Visa & LA' ? '#5B2C8D' : '#1A6B4B');
+  const accentBg = '#8B0000'; // Maroon untuk semua tipe
   // Support multi-item (combined)
   const items = t.items || [{ detail: t.detail, qty: t.qty, unitPrice: t.unitPrice, subtotal: t.totalPrice }];
   let itemRows = '';
@@ -1039,7 +1056,7 @@ function previewInvoice(inv, mode) {
           <img src="logo1.png" style="width:52px;height:52px;object-fit:contain;flex-shrink:0"
                onerror="this.style.display='none'">
           <div>
-            <div style="font-size:22px;font-weight:900;color:${accentBg};letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
+            <div style="font-size:22px;font-weight:900;color:#2b1417;letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
             <div style="font-size:10px;color:#777;letter-spacing:1px;font-family:Arial,sans-serif">TRAVEL AGENCY</div>
           </div>
         </div>
@@ -1128,10 +1145,21 @@ async function downloadAsPDF() {
     const invNo   = area.innerHTML.match(/INV-[A-Z]+-\d+-\d+/)?.[0] || 'invoice';
     const { jsPDF } = window.jspdf;
     const pdf  = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const pdfW = pdf.internal.pageSize.getWidth();
-    const margin = 15, drawW = pdfW - margin*2;
+    const pdfW   = pdf.internal.pageSize.getWidth();
+    const pdfH   = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const drawW  = pdfW - margin * 2;
     const drawH  = drawW * canvas.height / canvas.width;
-    pdf.addImage(imgData, 'PNG', margin, margin, drawW, Math.min(drawH, pdf.internal.pageSize.getHeight()-margin*2));
+    // If content shorter than A4, use actual height (no stretch)
+    const finalH = Math.min(drawH, pdfH - margin * 2);
+    if (drawH > pdfH - margin * 2) {
+      // Content taller than A4 — scale down to fit
+      const scale  = (pdfH - margin * 2) / drawH;
+      pdf.addImage(imgData, 'PNG', margin, margin, drawW * scale, pdfH - margin * 2);
+    } else {
+      // Content fits — use natural size, no stretch
+      pdf.addImage(imgData, 'PNG', margin, margin, drawW, drawH);
+    }
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (isIOS) {
       const url = URL.createObjectURL(pdf.output('blob'));
@@ -1208,6 +1236,11 @@ function generateCombineInvoice() {
   const totalPrice = selected.reduce((a,t) => a+(t.totalPrice||0), 0);
   const totalPaid  = selected.reduce((a,t) => a+(t.amtPaid||0), 0);
   const balance    = totalPrice - totalPaid;
+  // Determine badge label based on selected types
+  const types     = [...new Set(selected.map(t => t.type))];
+  const badgeLabel = types.length > 1
+    ? '🔀 Combined'
+    : (types[0] === 'Flight Ticket' ? '✈ Flight Ticket' : '🛂 Visa & LA');
   const customers  = [...new Set(selected.map(t=>t.customer))].join(' / ');
 
   // Build combined transaction object
@@ -1246,7 +1279,7 @@ function generateCombineInvoice() {
     const isP  = status === 'Down Payment' || status === 'Partially Paid';
     const sbg  = status==='Paid'?'#FFF8DC':(status==='Unpaid'?'#FDECEA':'#FFF3CD');
     const sfg  = status==='Paid'?'#7D5A00':(status==='Unpaid'?'#C0392B':'#E67E22');
-    const accB = '#1A6B4B';
+    const accB = '#8B0000';
     let itemRows = '';
     combined.items.forEach(it => {
       itemRows += `<tr style="background:#F0FFF4">
@@ -1263,7 +1296,7 @@ function generateCombineInvoice() {
             <img src="logo1.png" style="width:52px;height:52px;object-fit:contain;flex-shrink:0"
                  onerror="this.style.display='none'">
             <div>
-              <div style="font-size:22px;font-weight:900;color:${accB};letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
+              <div style="font-size:22px;font-weight:900;color:#2b1417;letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
               <div style="font-size:10px;color:#777;letter-spacing:1px;font-family:Arial,sans-serif">TRAVEL AGENCY</div>
             </div>
           </div>
@@ -1275,7 +1308,7 @@ function generateCombineInvoice() {
           <div style="font-size:24px;font-weight:900;color:${accB}">INVOICE</div>
           <span style="background:${sbg};color:${sfg};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">${status.toUpperCase()}</span>
         </div>
-        <div style="font-size:12px;font-weight:700;margin-bottom:2px">🔀 Combined Invoice</div>
+        <div style="display:inline-block;background:${accB};color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;margin-bottom:14px">${badgeLabel}</div>
         <div style="font-size:11px;color:#555;margin-bottom:14px">Date : ${today()}</div>
         <div style="background:${accB};color:white;font-size:10px;font-weight:700;padding:6px 10px;border-radius:4px 4px 0 0">BILLED TO</div>
         <div style="border:1px solid #eee;border-top:none;padding:10px;border-radius:0 0 4px 4px;margin-bottom:14px">
@@ -1314,7 +1347,133 @@ function generateCombineInvoice() {
 
   showToast('✅ Combined invoice ready — save as PDF or Image!');
 }
-// Init
+// ══════════════════════════════════════════════
+// EDIT TRANSACTION
+// ══════════════════════════════════════════════
+function openEditModal(inv) {
+  const t = S.txns.find(x => x.inv === inv);
+  if (!t) return;
+
+  document.getElementById('edit-body').innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--maroon);margin-bottom:4px">${t.inv}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t.customer} · ${t.date}</div>
+
+    <div class="form-group">
+      <label>Payment Status</label>
+      <select id="edit-status" onchange="toggleEditPaid()">
+        <option ${t.status==='Paid'?'selected':''}>Paid</option>
+        <option ${t.status==='Unpaid'?'selected':''}>Unpaid</option>
+        <option ${t.status==='Partially Paid'?'selected':''}>Partially Paid</option>
+        <option ${t.status==='Down Payment'?'selected':''}>Down Payment</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="edit-paid-group" style="display:${t.status==='Paid'||t.status==='Unpaid'?'none':'block'}">
+      <label>Amount Paid (Rp)</label>
+      <input type="number" id="edit-amtpaid" value="${t.amtPaid||0}" inputmode="numeric">
+    </div>
+
+    <div class="form-group">
+      <label>Payment Date</label>
+      <input type="date" id="edit-paydate" value="${t.payDate||''}">
+    </div>
+
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select id="edit-method">
+        ${['Cash','Bank Transfer','Credit Card','OVO','GoPay','Dana','Qris'].map(m =>
+          `<option ${t.method===m?'selected':''}>${m}</option>`
+        ).join('')}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <input type="text" id="edit-notes" value="${t.notes||''}">
+    </div>
+
+    <div id="edit-summary" style="background:var(--gray);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="color:var(--muted)">Total Price</span>
+        <span style="font-weight:700">${fmt(t.totalPrice)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:var(--muted)">Balance Due</span>
+        <span style="font-weight:700;color:var(--red)" id="edit-balance-display">${fmt(t.balance||0)}</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveEdit('${inv}')">💾 Save Changes</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal('modal-edit')">Cancel</button>`;
+
+  openModal('modal-edit');
+}
+
+function toggleEditPaid() {
+  const st  = document.getElementById('edit-status').value;
+  const grp = document.getElementById('edit-paid-group');
+  grp.style.display = (st==='Paid'||st==='Unpaid') ? 'none' : 'block';
+  // If Paid, auto-fill amount paid = total price
+  if (st === 'Paid') {
+    const inv = document.querySelector('#edit-body .btn-primary').getAttribute('onclick').match(/'([^']+)'/)[1];
+    const t   = S.txns.find(x => x.inv === inv);
+    if (t) document.getElementById('edit-amtpaid').value = t.totalPrice;
+  }
+}
+
+async function saveEdit(inv) {
+  const t       = S.txns.find(x => x.inv === inv);
+  if (!t) return;
+  const status  = document.getElementById('edit-status').value;
+  const amtPaid = status === 'Paid'   ? t.totalPrice :
+                  status === 'Unpaid' ? 0 :
+                  Number(document.getElementById('edit-amtpaid').value) || 0;
+  const payDate = document.getElementById('edit-paydate').value;
+  const method  = document.getElementById('edit-method').value;
+  const notes   = document.getElementById('edit-notes').value;
+  const balance = t.totalPrice - amtPaid;
+
+  // Update local state
+  t.status  = status;
+  t.amtPaid = amtPaid;
+  t.balance = balance;
+  t.payDate = payDate;
+  t.method  = method;
+  t.notes   = notes;
+
+  // Sync to Google Sheets if connected
+  if (S.apiUrl) {
+    try {
+      showToast('⏳ Saving...');
+      const res = await fetch(S.apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action:   'updateTransaction',
+          inv:      inv,
+          status:   status,
+          amtPaid:  amtPaid,
+          payDate:  payDate,
+          method:   method,
+          notes:    notes,
+          source:   t.source || t.type
+        })
+      });
+      const data = await res.json();
+      if (!data.success) showToast('⚠️ Local saved, Sheets sync failed');
+    } catch(e) {
+      showToast('⚠️ Local saved only (no connection)');
+    }
+  }
+
+  closeModal('modal-edit');
+  showToast('✅ Transaction updated! Status: ' + status);
+
+  // Refresh current screen
+  if (S.screen === 'database') renderDb();
+  else if (S.screen === 'invoice') renderInv();
+  else renderDash();
+}
+  // Init
 calcProfit('tkt'); calcProfit('la');
 </script>
 </body>
