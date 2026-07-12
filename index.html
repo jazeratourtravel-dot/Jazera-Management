@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#8B0000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jazera Travel">
+<link rel="manifest" href="manifest.json">
+<title>Jazera Travel Agency</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --maroon:#8B0000;--maroon-light:#B22222;--maroon-dark:#5C0000;
+  --gold:#F0A500;--gold-light:#FFF8DC;--gold-dark:#7D5A00;
+  --white:#FFFFFF;--dark:#1A1A1A;--gray:#F5F5F5;--border:#E0E0E0;
+  --muted:#777777;--green:#1E7E34;--red:#C0392B;
+  --radius:12px;--shadow:0 2px 16px rgba(0,0,0,0.12);
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F0F2F5;color:var(--dark);overflow:hidden}
+
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--white);box-shadow:var(--shadow);position:relative;overflow:hidden}
+
+/* ── HEADER ── */
+.header{background:linear-gradient(135deg,var(--maroon-dark),var(--maroon));color:var(--white);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:56px}
+.header-back{background:rgba(255,255,255,0.15);border:none;color:white;border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;display:none}
+.header-back.show{display:block}
+.header-title{flex:1}
+.header-title h1{font-size:15px;font-weight:700}
+.header-title p{font-size:10px;opacity:0.75;margin-top:1px}
+.header-avatar{width:34px;height:34px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--dark);cursor:pointer;flex-shrink:0}
+
+/* ── SCREENS ── */
+.screen{flex:1;overflow-y:auto;padding:16px 16px 80px;display:none}
+.screen.active{display:block}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{background:var(--white);border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:10}
+.nav-btn{flex:1;border:none;background:none;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10px;font-weight:500;transition:color 0.2s;position:relative}
+.nav-btn .icon{font-size:20px;line-height:1}
+.nav-btn.active{color:var(--maroon)}
+.nav-btn.active::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--maroon);border-radius:2px}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(160deg,var(--maroon-dark),var(--maroon));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;z-index:999}
+.login-logo{font-size:52px;margin-bottom:8px}
+.login-brand{color:white;text-align:center;margin-bottom:32px}
+.login-brand h2{font-size:24px;font-weight:800;letter-spacing:1px}
+.login-brand p{font-size:12px;opacity:0.7;margin-top:4px}
+.login-card{background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.3)}
+.login-card h3{font-size:17px;font-weight:700;color:var(--maroon);margin-bottom:20px}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px}
+.form-group select,.form-group input,.form-group textarea{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-size:14px;outline:none;transition:border-color 0.2s;background:var(--gray);font-family:inherit}
+.form-group select:focus,.form-group input:focus,.form-group textarea:focus{border-color:var(--maroon);background:white}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── BUTTONS ── */
+.btn{border:none;border-radius:12px;padding:13px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:inherit;width:100%}
+.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--maroon);color:white}
+.btn-gold{background:var(--gold);color:var(--dark)}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--dark)}
+.btn-green{background:var(--green);color:white}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:8px;width:auto}
+
+/* ── CARDS ── */
+.card{background:white;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:white;border-radius:var(--radius);padding:14px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.stat-value{font-size:17px;font-weight:800;color:var(--maroon)}
+.stat-value.gold{color:var(--gold-dark)}
+.stat-value.green{color:var(--green)}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* ── QUICK ACTIONS ── */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.qa-btn{background:white;border:2px solid var(--border);border-radius:var(--radius);padding:16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s}
+.qa-btn:active{transform:scale(0.97)}
+.qa-btn .qa-icon{font-size:26px}
+.qa-btn .qa-label{font-size:11px;font-weight:700;color:var(--dark);text-align:center}
+.qa-btn.maroon{border-color:#F5C6C6;background:#FFF5F5}
+.qa-btn.gold{border-color:#FFE0A0;background:#FFFDE7}
+.qa-btn.purple{border-color:#E8DAEF;background:#F8F3FF}
+.qa-btn.green{border-color:#C8E6C9;background:#F0FFF4}
+
+/* ── TRANSACTION LIST ── */
+.txn-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.txn-item:last-child{border-bottom:none}
+.txn-badge{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.txn-badge.tkt{background:#F5C6C6}
+.txn-badge.la{background:#E8DAEF}
+.txn-badge.cmb{background:#FFF8DC}
+.txn-info{flex:1;min-width:0}
+.txn-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txn-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.txn-right{text-align:right;flex-shrink:0}
+.txn-amount{font-size:12px;font-weight:700;color:var(--maroon)}
+.status-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-top:3px;display:inline-block}
+.status-badge.paid{background:var(--gold-light);color:var(--gold-dark)}
+.status-badge.unpaid{background:#FDECEA;color:var(--red)}
+.status-badge.partial{background:#FFF3CD;color:#E67E22}
+
+/* ── MONTH HEADER ── */
+.month-hdr{background:linear-gradient(90deg,var(--maroon-dark),var(--maroon));color:white;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.month-hdr .mname{font-size:12px;font-weight:700}
+.month-hdr .mprofit{font-size:13px;font-weight:800}
+
+/* ── FILTER CHIPS ── */
+.chips{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:white;color:var(--muted);transition:all 0.2s;flex-shrink:0}
+.chip.active{background:var(--maroon);border-color:var(--maroon);color:white}
+
+/* ── SEARCH ── */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:11px 13px 11px 38px;font-size:14px;outline:none;background:var(--gray)}
+.search-box input:focus{border-color:var(--maroon);background:white}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)}
+
+/* ── INVOICE CARD ── */
+.inv-card{background:white;border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--maroon)}
+.inv-card.la{border-left-color:#5B2C8D}
+.inv-card.cmb{border-left-color:var(--gold-dark)}
+.inv-company{font-size:15px;font-weight:800;color:var(--maroon);margin-bottom:2px}
+.inv-card.la .inv-company{color:#5B2C8D}
+.inv-card.cmb .inv-company{color:var(--gold-dark)}
+.inv-meta{font-size:11px;color:var(--muted);margin-bottom:12px}
+.inv-divider{height:1px;background:var(--border);margin:10px 0}
+.inv-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.inv-table th{background:var(--maroon);color:white;padding:7px 6px;text-align:left;font-size:10px}
+.inv-card.la .inv-table th{background:#5B2C8D}
+.inv-table td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
+.inv-total{display:flex;justify-content:space-between;align-items:center;background:var(--maroon);color:white;border-radius:8px;padding:10px 13px;margin-top:8px}
+.inv-card.la .inv-total{background:#5B2C8D}
+.inv-card.cmb .inv-total{background:var(--gold-dark)}
+.inv-total-label{font-size:12px;font-weight:600}
+.inv-total-value{font-size:15px;font-weight:800}
+.inv-balance{display:flex;justify-content:space-between;background:#FDECEA;border-radius:8px;padding:8px 13px;margin-top:6px}
+.inv-paid-row{display:flex;justify-content:space-between;background:var(--gold-light);border-radius:8px;padding:8px 13px;margin-top:6px}
+.inv-bank{background:var(--gray);border-radius:8px;padding:10px;margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6}
+.inv-footer-text{text-align:center;font-size:11px;color:var(--muted);font-style:italic;margin-top:10px}
+.inv-actions{display:flex;gap:8px;margin-top:10px}
+.inv-actions .btn{flex:1}
+
+/* ── RECAP ── */
+.recap-annual{background:linear-gradient(135deg,var(--maroon-dark),var(--maroon));color:white;border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.recap-annual h3{font-size:13px;font-weight:700;margin-bottom:12px;opacity:0.85}
+.recap-annual-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.recap-annual-item .rl{font-size:10px;opacity:0.75;margin-bottom:2px}
+.recap-annual-item .rv{font-size:15px;font-weight:800}
+.recap-month-card{background:white;border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.recap-month-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--maroon)}
+.recap-month-name{font-size:13px;font-weight:700;color:var(--maroon)}
+.recap-month-profit{font-size:14px;font-weight:800;color:var(--maroon)}
+.recap-month-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px}
+.recap-month-item .rl{color:var(--muted);margin-bottom:2px}
+.recap-month-item .rv{font-weight:700}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:white;border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp 0.3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 16px}
+.modal-title{font-size:16px;font-weight:700;color:var(--maroon);margin-bottom:16px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:#333;color:white;border-radius:20px;padding:10px 20px;font-size:13px;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SETUP BANNER ── */
+.setup-banner{background:linear-gradient(135deg,#FFF8DC,#FFE0A0);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.setup-banner h3{font-size:13px;font-weight:700;color:var(--gold-dark);margin-bottom:6px}
+.setup-banner p{font-size:12px;color:var(--gold-dark);line-height:1.5}
+
+/* ── CALC BOX ── */
+.calc-box{background:var(--gray);border-radius:10px;padding:12px;margin-top:10px}
+.calc-box .calc-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px}
+.calc-item .cl{color:var(--muted)}
+.calc-item .cv{font-weight:700;margin-top:1px}
+.calc-item .cv.profit{color:var(--green)}
+.calc-item .cv.loss{color:var(--red)}
+
+/* ── TYPE SELECTOR ── */
+.type-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.type-btn{border:2px solid var(--border);border-radius:10px;padding:12px 8px;cursor:pointer;background:white;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all 0.2s}
+.type-btn .ti{font-size:20px}
+.type-btn .tl{font-size:11px;font-weight:700;color:var(--dark)}
+.type-btn.sel-tkt{border-color:var(--maroon);background:#FFF5F5}
+.type-btn.sel-la{border-color:#5B2C8D;background:#F8F3FF}
+
+/* ── PROFILE ── */
+.profile-item{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border)}
+.profile-item:last-child{border-bottom:none}
+.profile-item-label{font-size:14px;font-weight:500}
+.profile-item-value{font-size:13px;color:var(--muted)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .ei{font-size:44px;margin-bottom:12px}
+.empty p{font-size:14px}
+
+/* ── LOADER ── */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--muted);gap:12px}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--maroon);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.section-title{font-size:13px;font-weight:700;color:var(--maroon);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #F5C6C6}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">✈️</div>
+  <div class="login-brand">
+    <h2>JAZERA</h2>
+    <p>Travel Agency Management</p>
+  </div>
+  <div class="login-card">
+    <h3>Sign In</h3>
+    <div class="form-group">
+      <label>Select Agent</label>
+      <select id="login-user">
+        <option value="">— select name —</option>
+        <option value="admin">Admin / Owner</option>
+        <option value="agent1">Agent 1</option>
+        <option value="agent2">Agent 2</option>
+        <option value="agent3">Agent 3</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>PIN</label>
+      <input type="password" id="login-pin" maxlength="6" placeholder="••••" inputmode="numeric">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:12px">Default PIN: 1234</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="header">
+    <button class="header-back" id="back-btn" onclick="goBack()">←</button>
+    <div class="header-title">
+      <h1 id="hdr-title">Dashboard</h1>
+      <p id="hdr-sub">Jazera Travel Agency</p>
+    </div>
+    <div class="header-avatar" id="user-avatar" onclick="showProfile()">?</div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="screen-home">
+    <div id="setup-banner" class="setup-banner" style="display:none">
+      <h3>⚙️ Connect to Google Sheets</h3>
+      <p>Tap the button below to enter your Apps Script Web App URL and connect to your data.</p>
+      <button class="btn btn-gold" style="margin-top:10px;font-size:13px;padding:10px" onclick="showSetup()">Configure Now</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">This Month Profit</div><div class="stat-value green" id="s-profit">—</div><div class="stat-sub" id="s-month">loading...</div></div>
+      <div class="stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value" id="s-txn">—</div><div class="stat-sub">all time</div></div>
+      <div class="stat-card"><div class="stat-label">Unpaid / Partial</div><div class="stat-value gold" id="s-unpaid">—</div><div class="stat-sub">need follow-up</div></div>
+      <div class="stat-card"><div class="stat-label">My Transactions</div><div class="stat-value" id="s-mine">—</div><div class="stat-sub">this month</div></div>
+    </div>
+    <div class="card-title">Quick Add</div>
+    <div class="quick-grid">
+      <button class="qa-btn maroon" onclick="navTo('input');setType('tkt')"><span class="qa-icon">✈️</span><span class="qa-label">Flight Ticket</span></button>
+      <button class="qa-btn purple" onclick="navTo('input');setType('la')"><span class="qa-icon">🛂</span><span class="qa-label">Visa & LA</span></button>
+      <button class="qa-btn gold" onclick="navTo('invoice')"><span class="qa-icon">🧾</span><span class="qa-label">View Invoices</span></button>
+      <button class="qa-btn green" onclick="navTo('recap')"><span class="qa-icon">📈</span><span class="qa-label">Monthly Recap</span></button>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent Transactions</div>
+      <div id="recent-list"><div class="loader"><div class="spinner"></div><span>Loading...</span></div></div>
+    </div>
+  </div>
+
+  <!-- INPUT -->
+  <div class="screen" id="screen-input">
+    <div class="type-selector">
+      <button class="type-btn sel-tkt" id="tbtn-tkt" onclick="setType('tkt')"><span class="ti">✈️</span><span class="tl">Flight Ticket</span></button>
+      <button class="type-btn" id="tbtn-la"  onclick="setType('la')"><span class="ti">🛂</span><span class="tl">Visa & LA</span></button>
+    </div>
+    <div class="card">
+      <div id="fields-tkt">
+        <div class="section-title">Customer Info</div>
+        <div class="form-group"><label>Customer / Booker *</label><input type="text" id="t-customer" placeholder="e.g. Budi Santoso"></div>
+        <div class="form-group"><label>Passenger Name *</label><input type="text" id="t-passenger" placeholder="e.g. Budi Santoso"></div>
+        <div class="section-title" style="margin-top:14px">Flight Details</div>
+        <div class="form-group"><label>Route *</label><input type="text" id="t-route" placeholder="e.g. CGK → DPS"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Flight Date *</label><input type="date" id="t-flightdate"></div>
+          <div class="form-group"><label>Airline *</label><input type="text" id="t-airline" placeholder="e.g. Garuda"></div>
+        </div>
+        <div class="form-group"><label>Qty (Pax) *</label><input type="number" id="t-qty" value="1" min="1" inputmode="numeric" oninput="calcProfit('tkt')"></div>
+        <div class="section-title" style="margin-top:14px">Pricing</div>
+        <div class="form-row">
+          <div class="form-group"><label>Unit Price (Rp) *</label><input type="number" id="t-price" placeholder="0" inputmode="numeric" oninput="calcProfit('tkt')"></div>
+          <div class="form-group"><label>Cost/HPP per unit *</label><input type="number" id="t-hpp" placeholder="0" inputmode="numeric" oninput="calcProfit('tkt')"></div>
+        </div>
+        <div class="form-group"><label>Commission per unit</label><input type="number" id="t-comm" placeholder="0" inputmode="numeric" oninput="calcProfit('tkt')"></div>
+        <div class="calc-box" id="t-calc"><div class="calc-title">Live Calculation</div><div class="calc-grid"><div class="calc-item"><div class="cl">Total Price</div><div class="cv" id="tc-total">Rp 0</div></div><div class="calc-item"><div class="cl">Total HPP</div><div class="cv" id="tc-hpp">Rp 0</div></div><div class="calc-item"><div class="cl">Total Comm.</div><div class="cv" id="tc-comm">Rp 0</div></div><div class="calc-item"><div class="cl">Net Profit</div><div class="cv profit" id="tc-profit">Rp 0</div></div></div></div>
+        <div class="section-title" style="margin-top:14px">Payment</div>
+        <div class="form-row">
+          <div class="form-group"><label>Method</label><select id="t-method"><option>Cash</option><option>Bank Transfer</option><option>Credit Card</option><option>OVO</option><option>GoPay</option><option>Dana</option><option>Qris</option></select></div>
+          <div class="form-group"><label>Status</label><select id="t-status" onchange="togglePaid('tkt')"><option>Paid</option><option>Unpaid</option><option>Partially Paid</option></select></div>
+        </div>
+        <div id="t-paid-group" class="form-group" style="display:none"><label>Amount Paid (Rp)</label><input type="number" id="t-paid" placeholder="0" inputmode="numeric"></div>
+        <div class="form-group"><label>Notes</label><input type="text" id="t-notes" placeholder="optional"></div>
+      </div>
+
+      <div id="fields-la" style="display:none">
+        <div class="section-title">Customer Info</div>
+        <div class="form-group"><label>Customer Name *</label><input type="text" id="l-customer" placeholder="e.g. Ahmad Fauzi"></div>
+        <div class="section-title" style="margin-top:14px">Service Details</div>
+        <div class="form-group"><label>Destination / Service *</label><input type="text" id="l-service" placeholder="e.g. Schengen Visa - Germany"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Service Date *</label><input type="date" id="l-date"></div>
+          <div class="form-group"><label>Qty (Pax) *</label><input type="number" id="l-qty" value="1" min="1" inputmode="numeric" oninput="calcProfit('la')"></div>
+        </div>
+        <div class="section-title" style="margin-top:14px">Pricing</div>
+        <div class="form-row">
+          <div class="form-group"><label>Unit Price (Rp) *</label><input type="number" id="l-price" placeholder="0" inputmode="numeric" oninput="calcProfit('la')"></div>
+          <div class="form-group"><label>Cost/HPP per unit *</label><input type="number" id="l-hpp" placeholder="0" inputmode="numeric" oninput="calcProfit('la')"></div>
+        </div>
+        <div class="form-group"><label>Commission per unit</label><input type="number" id="l-comm" placeholder="0" inputmode="numeric" oninput="calcProfit('la')"></div>
+        <div class="calc-box" id="l-calc"><div class="calc-title">Live Calculation</div><div class="calc-grid"><div class="calc-item"><div class="cl">Total Price</div><div class="cv" id="lc-total">Rp 0</div></div><div class="calc-item"><div class="cl">Total HPP</div><div class="cv" id="lc-hpp">Rp 0</div></div><div class="calc-item"><div class="cl">Total Comm.</div><div class="cv" id="lc-comm">Rp 0</div></div><div class="calc-item"><div class="cl">Net Profit</div><div class="cv profit" id="lc-profit">Rp 0</div></div></div></div>
+        <div class="section-title" style="margin-top:14px">Payment</div>
+        <div class="form-row">
+          <div class="form-group"><label>Method</label><select id="l-method"><option>Cash</option><option>Bank Transfer</option><option>Credit Card</option><option>OVO</option><option>GoPay</option><option>Dana</option><option>Qris</option></select></div>
+          <div class="form-group"><label>Status</label><select id="l-status" onchange="togglePaid('la')"><option>Paid</option><option>Unpaid</option><option>Down Payment</option></select></div>
+        </div>
+        <div id="l-paid-group" class="form-group" style="display:none"><label>Amount Paid (Rp)</label><input type="number" id="l-paid" placeholder="0" inputmode="numeric"></div>
+        <div class="form-group"><label>Notes</label><input type="text" id="l-notes" placeholder="optional"></div>
+      </div>
+
+      <button class="btn btn-primary" id="submit-btn" onclick="submitTxn()" style="margin-top:4px">💾 Save Transaction</button>
+    </div>
+  </div>
+
+  <!-- DATABASE -->
+  <div class="screen" id="screen-database">
+    <div class="search-box"><span class="search-icon">🔍</span><input type="text" id="db-search" placeholder="Search customer, invoice, route..." oninput="filterDb()"></div>
+    <div class="chips">
+      <span class="chip active" onclick="setChip(this,'all')">All</span>
+      <span class="chip" onclick="setChip(this,'tkt')">✈ Tickets</span>
+      <span class="chip" onclick="setChip(this,'la')">🛂 Visa & LA</span>
+      <span class="chip" onclick="setChip(this,'paid')">✅ Paid</span>
+      <span class="chip" onclick="setChip(this,'unpaid')">⚠ Unpaid</span>
+      <span class="chip" onclick="setChip(this,'partial')">🕐 Partial</span>
+    </div>
+    <div id="db-list"><div class="loader"><div class="spinner"></div><span>Loading...</span></div></div>
+  </div>
+
+  <!-- RECAP -->
+  <div class="screen" id="screen-recap">
+    <div class="chips">
+      <span class="chip active" onclick="setRecapFilter(this,'all')">All Services</span>
+      <span class="chip" onclick="setRecapFilter(this,'tkt')">✈ Tickets</span>
+      <span class="chip" onclick="setRecapFilter(this,'la')">🛂 Visa & LA</span>
+    </div>
+    <div id="recap-content"><div class="loader"><div class="spinner"></div><span>Loading...</span></div></div>
+  </div>
+
+  <!-- INVOICE -->
+  <div class="screen" id="screen-invoice">
+    <div class="search-box"><span class="search-icon">🧾</span><input type="text" id="inv-search" placeholder="Search invoice no. or customer..." oninput="filterInv()"></div>
+    <div id="inv-list"><div class="loader"><div class="spinner"></div><span>Loading...</span></div></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="navTo('home')"><span class="icon">🏠</span>Home</button>
+    <button class="nav-btn" id="nav-input" onclick="navTo('input')"><span class="icon">➕</span>Input</button>
+    <button class="nav-btn" id="nav-database" onclick="navTo('database')"><span class="icon">📊</span>Database</button>
+    <button class="nav-btn" id="nav-recap" onclick="navTo('recap')"><span class="icon">📈</span>Recap</button>
+    <button class="nav-btn" id="nav-invoice" onclick="navTo('invoice')"><span class="icon">🧾</span>Invoice</button>
+  </nav>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- SETUP MODAL -->
+<div class="modal-overlay" id="modal-setup">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Connect to Google Sheets</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+      Paste your Apps Script Web App URL below.<br>
+      <strong>How to get URL:</strong> Apps Script → Deploy → New Deployment → Web App → Execute as: Me → Access: Anyone → Deploy → Copy URL
+    </p>
+    <div class="form-group">
+      <label>Web App URL</label>
+      <input type="url" id="api-url-input" placeholder="https://script.google.com/macros/s/...">
+    </div>
+    <button class="btn btn-primary" onclick="saveUrl()">Save & Connect</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal('modal-setup')">Cancel</button>
+    <div style="margin-top:14px;padding:12px;background:var(--gray);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
+      💡 <strong>Demo mode:</strong> Without URL, app works with sample data so you can explore all features first.
+    </div>
+  </div>
+</div>
+
+<!-- TXN DETAIL MODAL -->
+<div class="modal-overlay" id="modal-txn">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="txn-modal-body"></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">👤 Profile</div>
+    <div id="profile-body"></div>
+    <button class="btn btn-primary" style="background:var(--red);margin-top:16px" onclick="doLogout()">Sign Out</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal('modal-profile')">Close</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const S = {
+  user: null,
+  apiUrl: localStorage.getItem('jazera_api_url') || '',
+  screen: 'home',
+  type: 'tkt',
+  dbFilter: 'all',
+  recapFilter: 'all',
+  txns: [],
+};
+
+const fmt = n => 'Rp ' + Number(n||0).toLocaleString('id-ID');
+const today = () => new Date().toISOString().split('T')[0];
+const mLabel = d => { try { return new Date(d+'T00:00:00').toLocaleString('default',{month:'long',year:'numeric'}); } catch(e){return d;} };
+
+// ══════════════════════════════════════════════
+// SAMPLE DATA
+// ══════════════════════════════════════════════
+const SAMPLES = [
+  {inv:'INV-TKT-2607-001',date:'2026-07-05',type:'Flight Ticket',agent:'admin',customer:'Budi Santoso',detail:'CGK → DPS | Garuda | 10 Jul 2026',qty:2,unitPrice:2500000,totalPrice:5000000,totalHPP:4400000,totalComm:300000,profitUnit:250000,netProfit:300000,method:'Bank Transfer',status:'Paid',amtPaid:5000000,balance:0,payDate:'2026-07-05',notes:''},
+  {inv:'INV-TKT-2607-002',date:'2026-07-06',type:'Flight Ticket',agent:'agent1',customer:'Siti Rahayu',detail:'SUB → SIN | AirAsia | 15 Jul 2026',qty:1,unitPrice:1800000,totalPrice:1800000,totalHPP:1600000,totalComm:100000,profitUnit:100000,netProfit:100000,method:'Cash',status:'Partially Paid',amtPaid:900000,balance:900000,payDate:'2026-07-06',notes:'50% paid'},
+  {inv:'INV-LA-2607-001',date:'2026-07-07',type:'Visa & LA',agent:'admin',customer:'Ahmad Fauzi',detail:'Schengen Visa - Germany | 20 Jul 2026 | 1 pax',qty:1,unitPrice:3500000,totalPrice:3500000,totalHPP:3000000,totalComm:200000,profitUnit:300000,netProfit:300000,method:'Bank Transfer',status:'Paid',amtPaid:3500000,balance:0,payDate:'2026-07-07',notes:''},
+  {inv:'INV-LA-2607-002',date:'2026-07-08',type:'Visa & LA',agent:'agent2',customer:'Maya Putri',detail:'Airport Landing - Bali | 25 Jul 2026 | 4 pax',qty:4,unitPrice:500000,totalPrice:2000000,totalHPP:1600000,totalComm:200000,profitUnit:75000,netProfit:200000,method:'Cash',status:'Down Payment',amtPaid:1000000,balance:1000000,payDate:'2026-07-08',notes:'DP 50%'},
+  {inv:'INV-TKT-2608-001',date:'2026-08-03',type:'Flight Ticket',agent:'admin',customer:'Rudi Hermawan',detail:'CGK → SIN | Singapore Airlines | 15 Aug 2026',qty:3,unitPrice:3200000,totalPrice:9600000,totalHPP:8700000,totalComm:300000,profitUnit:66667,netProfit:600000,method:'Bank Transfer',status:'Paid',amtPaid:9600000,balance:0,payDate:'2026-08-03',notes:''},
+];
+
+// ══════════════════════════════════════════════
+// LOGIN / AUTH
+// ══════════════════════════════════════════════
+const AGENT_NAMES = {admin:'Admin / Owner',agent1:'Agent 1',agent2:'Agent 2',agent3:'Agent 3'};
+
+function doLogin() {
+  const user = document.getElementById('login-user').value;
+  const pin  = document.getElementById('login-pin').value;
+  if (!user) { showToast('⚠️ Select your name'); return; }
+  if (pin !== '1234') { showToast('⚠️ Incorrect PIN'); return; }
+  S.user = user;
+  document.getElementById('user-avatar').textContent = (AGENT_NAMES[user]||'?')[0];
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  loadData();
+  if (!S.apiUrl) document.getElementById('setup-banner').style.display = 'block';
+}
+
+function doLogout() {
+  S.user = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pin').value = '';
+  closeModal('modal-profile');
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const TITLES = {home:'Dashboard',input:'Add Transaction',database:'Database',recap:'Monthly Recap',invoice:'Invoices'};
+
+function navTo(screen) {
+  ['home','input','database','recap','invoice'].forEach(s => {
+    document.getElementById('screen-'+s).classList.toggle('active', s===screen);
+    const nb = document.getElementById('nav-'+s);
+    if (nb) nb.classList.toggle('active', s===screen);
+  });
+  S.screen = screen;
+  document.getElementById('hdr-title').textContent = TITLES[screen]||screen;
+  document.getElementById('back-btn').classList.remove('show');
+  if (screen==='database') renderDb();
+  if (screen==='recap')    renderRecap();
+  if (screen==='invoice')  renderInv();
+  if (screen==='home')     renderDash();
+}
+function goBack() { navTo('home'); }
+
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+async function loadData() {
+  if (S.apiUrl) {
+    try {
+      const res  = await fetch(S.apiUrl + '?action=getAll');
+      const data = await res.json();
+      if (data.transactions) { S.txns = data.transactions; }
+      else { S.txns = SAMPLES; showToast('⚠️ Using demo data'); }
+    } catch(e) { S.txns = SAMPLES; showToast('⚠️ Demo mode (API error)'); }
+  } else {
+    S.txns = SAMPLES;
+  }
+  renderDash();
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDash() {
+  const now = new Date();
+  const cm = now.getMonth(), cy = now.getFullYear();
+  const thisMonth = S.txns.filter(t => {
+    const d = new Date(t.date+'T00:00:00');
+    return d.getMonth()===cm && d.getFullYear()===cy;
+  });
+  document.getElementById('s-profit').textContent  = fmt(thisMonth.reduce((a,t)=>a+(t.netProfit||0),0));
+  document.getElementById('s-txn').textContent     = S.txns.length;
+  document.getElementById('s-unpaid').textContent  = S.txns.filter(t=>t.status!=='Paid').length;
+  document.getElementById('s-mine').textContent    = thisMonth.filter(t=>t.agent===S.user).length;
+  document.getElementById('s-month').textContent   = now.toLocaleString('default',{month:'long',year:'numeric'});
+  const recent = [...S.txns].reverse().slice(0,5);
+  document.getElementById('recent-list').innerHTML = recent.length
+    ? recent.map(txnRow).join('')
+    : '<div class="empty"><div class="ei">📭</div><p>No transactions yet</p></div>';
+}
+
+function txnRow(t) {
+  const cls = t.type==='Flight Ticket'?'tkt':(t.type==='Visa & LA'?'la':'cmb');
+  const ico = t.type==='Flight Ticket'?'✈️':(t.type==='Visa & LA'?'🛂':'🔀');
+  const sc  = t.status==='Paid'?'paid':(t.status==='Unpaid'?'unpaid':'partial');
+  return `<div class="txn-item" onclick="showTxn('${t.inv}')">
+    <div class="txn-badge ${cls}">${ico}</div>
+    <div class="txn-info">
+      <div class="txn-name">${t.customer}</div>
+      <div class="txn-detail">${t.inv} · ${t.date}</div>
+    </div>
+    <div class="txn-right">
+      <div class="txn-amount">${fmt(t.totalPrice)}</div>
+      <span class="status-badge ${sc}">${t.status}</span>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// DATABASE
+// ══════════════════════════════════════════════
+function setChip(el, val) {
+  document.querySelectorAll('.chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); S.dbFilter = val; filterDb();
+}
+function filterDb() {
+  const q = (document.getElementById('db-search').value||'').toLowerCase();
+  const f = S.dbFilter;
+  let txns = S.txns;
+  if (f==='tkt')     txns = txns.filter(t=>t.type==='Flight Ticket');
+  if (f==='la')      txns = txns.filter(t=>t.type==='Visa & LA');
+  if (f==='paid')    txns = txns.filter(t=>t.status==='Paid');
+  if (f==='unpaid')  txns = txns.filter(t=>t.status==='Unpaid');
+  if (f==='partial') txns = txns.filter(t=>t.status==='Partially Paid'||t.status==='Down Payment');
+  if (q) txns = txns.filter(t=>
+    t.customer.toLowerCase().includes(q)||t.inv.toLowerCase().includes(q)||
+    t.detail.toLowerCase().includes(q)||(t.agent||'').toLowerCase().includes(q));
+  const el = document.getElementById('db-list');
+  if (!txns.length) { el.innerHTML='<div class="empty"><div class="ei">🔍</div><p>No transactions found</p></div>'; return; }
+  const byMonth = {};
+  txns.forEach(t=>{ const mk=t.date.slice(0,7); if(!byMonth[mk]) byMonth[mk]=[]; byMonth[mk].push(t); });
+  let html = '';
+  Object.keys(byMonth).sort().reverse().forEach(mk=>{
+    const g = byMonth[mk];
+    const mp = g.reduce((a,t)=>a+(t.netProfit||0),0);
+    html += `<div class="month-hdr"><span class="mname">📅 ${mLabel(mk+'-01')}</span><span class="mprofit">${fmt(mp)}</span></div>
+    <div class="card" style="padding:8px 14px">${g.map(txnRow).join('')}</div>`;
+  });
+  el.innerHTML = html;
+}
+function renderDb() { filterDb(); }
+
+// ══════════════════════════════════════════════
+// RECAP
+// ══════════════════════════════════════════════
+function setRecapFilter(el, val) {
+  document.querySelectorAll('#screen-recap .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); S.recapFilter = val; renderRecap();
+}
+function renderRecap() {
+  let txns = S.txns;
+  if (S.recapFilter==='tkt') txns = txns.filter(t=>t.type==='Flight Ticket');
+  if (S.recapFilter==='la')  txns = txns.filter(t=>t.type==='Visa & LA');
+  const byMonth = {};
+  txns.forEach(t=>{
+    const mk = t.date.slice(0,7);
+    if (!byMonth[mk]) byMonth[mk]={total:0,hpp:0,comm:0,profit:0,count:0,paid:0,unpaid:0};
+    byMonth[mk].total  += t.totalPrice||0;
+    byMonth[mk].hpp    += t.totalHPP||0;
+    byMonth[mk].comm   += t.totalComm||0;
+    byMonth[mk].profit += t.netProfit||0;
+    byMonth[mk].count++;
+    if (t.status==='Paid') byMonth[mk].paid++;
+    else byMonth[mk].unpaid++;
+  });
+  const ann = {total:0,hpp:0,comm:0,profit:0};
+  Object.values(byMonth).forEach(m=>{ ann.total+=m.total; ann.hpp+=m.hpp; ann.comm+=m.comm; ann.profit+=m.profit; });
+  const el = document.getElementById('recap-content');
+  if (!Object.keys(byMonth).length) { el.innerHTML='<div class="empty"><div class="ei">📊</div><p>No data yet</p></div>'; return; }
+  let html = `<div class="recap-annual">
+    <h3>🏆 Annual Summary</h3>
+    <div class="recap-annual-grid">
+      <div class="recap-annual-item"><div class="rl">Total Revenue</div><div class="rv">${fmt(ann.total)}</div></div>
+      <div class="recap-annual-item"><div class="rl">Total HPP</div><div class="rv">${fmt(ann.hpp)}</div></div>
+      <div class="recap-annual-item"><div class="rl">Total Commission</div><div class="rv">${fmt(ann.comm)}</div></div>
+      <div class="recap-annual-item"><div class="rl">Net Profit</div><div class="rv" style="color:var(--gold-light)">${fmt(ann.profit)}</div></div>
+    </div>
+  </div>`;
+  Object.keys(byMonth).sort().reverse().forEach(mk=>{
+    const m = byMonth[mk];
+    html += `<div class="recap-month-card">
+      <div class="recap-month-hdr">
+        <span class="recap-month-name">📅 ${mLabel(mk+'-01')}</span>
+        <span class="recap-month-profit">${fmt(m.profit)}</span>
+      </div>
+      <div class="recap-month-grid">
+        <div class="recap-month-item"><div class="rl">Revenue</div><div class="rv">${fmt(m.total)}</div></div>
+        <div class="recap-month-item"><div class="rl">HPP</div><div class="rv">${fmt(m.hpp)}</div></div>
+        <div class="recap-month-item"><div class="rl">Commission</div><div class="rv" style="color:var(--gold-dark)">${fmt(m.comm)}</div></div>
+        <div class="recap-month-item"><div class="rl">Transactions</div><div class="rv">${m.count} (${m.paid} paid)</div></div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════
+// INVOICE
+// ══════════════════════════════════════════════
+function filterInv() {
+  const q = (document.getElementById('inv-search').value||'').toLowerCase();
+  let txns = S.txns;
+  if (q) txns = txns.filter(t=>t.inv.toLowerCase().includes(q)||t.customer.toLowerCase().includes(q));
+  const el = document.getElementById('inv-list');
+  if (!txns.length) { el.innerHTML='<div class="empty"><div class="ei">🧾</div><p>No invoices found</p></div>'; return; }
+  el.innerHTML = [...txns].reverse().map(invCard).join('');
+}
+function renderInv() { filterInv(); }
+
+function invCard(t) {
+  const cls = t.type==='Flight Ticket'?'':(t.type==='Visa & LA'?'la':'cmb');
+  const sbg = t.status==='Paid'?'#FFF8DC':(t.status==='Unpaid'?'#FDECEA':'#FFF3CD');
+  const sfg = t.status==='Paid'?'#7D5A00':(t.status==='Unpaid'?'#C0392B':'#E67E22');
+  const slbl= t.type==='Flight Ticket'?'✈ Flight Ticket':(t.type==='Visa & LA'?'🛂 Visa & LA':'🔀 Combined');
+  const isP = t.status==='Partially Paid'||t.status==='Down Payment';
+  return `<div class="inv-card ${cls}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="inv-company">JAZERA</div>
+      <span style="background:${sbg};color:${sfg};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">● ${t.status.toUpperCase()}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px">TRAVEL AGENCY · ${slbl}</div>
+    <div class="inv-divider"></div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Invoice No.</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:2px">${t.inv}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Date: ${t.date}</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:4px">BILLED TO</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px">${t.customer}</div>
+    <table class="inv-table ${cls}">
+      <tr><th style="width:50%">Description</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr>
+      <tr>
+        <td style="font-size:11px">${t.detail}</td>
+        <td style="text-align:center">${t.qty}</td>
+        <td>${fmt(t.unitPrice)}</td>
+        <td style="font-weight:700">${fmt(t.totalPrice)}</td>
+      </tr>
+    </table>
+    <div class="inv-total ${cls}">
+      <span class="inv-total-label">GRAND TOTAL</span>
+      <span class="inv-total-value">${fmt(t.totalPrice)}</span>
+    </div>
+    ${isP ? `
+    <div class="inv-paid-row">
+      <span style="font-size:12px;color:var(--gold-dark)">Amount Paid${t.payDate?' ('+t.payDate+')':''}</span>
+      <span style="font-size:13px;font-weight:700;color:var(--gold-dark)">${fmt(t.amtPaid)}</span>
+    </div>
+    <div class="inv-balance">
+      <span style="font-size:12px;font-weight:600;color:var(--red)">⚠️ Balance Due</span>
+      <span style="font-size:13px;font-weight:700;color:var(--red)">${fmt(t.balance)}</span>
+    </div>` : ''}
+    ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:8px;font-style:italic">📝 ${t.notes}</div>`:''}
+    <div class="inv-bank">🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION<br>📱 Confirm: +62 857-8170-7662</div>
+    <div class="inv-footer-text">Thank you for trusting Jazera Travel Agency! 🙏</div>
+    <div class="inv-actions">
+      <button class="btn btn-outline btn-sm" onclick="copyInv('${t.inv}')">📋 Copy</button>
+      <button class="btn btn-primary btn-sm" onclick="shareInv('${t.inv}')">📤 Share via WA</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// TRANSACTION DETAIL
+// ══════════════════════════════════════════════
+function showTxn(inv) {
+  const t = S.txns.find(x=>x.inv===inv);
+  if (!t) return;
+  const rows = [
+    ['Service Type',t.type],['Agent',t.agent||'—'],['Detail',t.detail],
+    ['Qty',t.qty+' pax'],['Unit Price',fmt(t.unitPrice)],['Total Price',fmt(t.totalPrice)],
+    ['Total HPP',fmt(t.totalHPP)],['Total Commission',fmt(t.totalComm)],
+    ['Profit/unit',fmt(t.profitUnit)],['Net Profit',fmt(t.netProfit)],
+    ['Payment Method',t.method],['Status',t.status],
+    ['Amount Paid',fmt(t.amtPaid)],['Balance Due',fmt(t.balance)],
+  ];
+  document.getElementById('txn-modal-body').innerHTML = `
+    <div class="modal-title">${t.customer}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t.inv} · ${t.date}</div>
+    ${rows.map(([k,v])=>`<div class="profile-item"><span class="profile-item-label">${k}</span><span class="profile-item-value" style="text-align:right;max-width:55%">${v}</span></div>`).join('')}
+    ${t.notes?`<div style="margin-top:12px;padding:10px;background:var(--gray);border-radius:8px;font-size:12px;color:var(--muted)">📝 ${t.notes}</div>`:''}
+    <button class="btn btn-primary" style="margin-top:16px" onclick="closeModal('modal-txn')">Close</button>`;
+  openModal('modal-txn');
+}
+
+// ══════════════════════════════════════════════
+// INPUT FORM
+// ══════════════════════════════════════════════
+function setType(type) {
+  S.type = type;
+  document.getElementById('fields-tkt').style.display = type==='tkt'?'block':'none';
+  document.getElementById('fields-la').style.display  = type==='la' ?'block':'none';
+  document.getElementById('tbtn-tkt').className = 'type-btn'+(type==='tkt'?' sel-tkt':'');
+  document.getElementById('tbtn-la').className  = 'type-btn'+(type==='la' ?' sel-la':'');
+  calcProfit(type);
+}
+
+function togglePaid(type) {
+  const st  = document.getElementById(type==='tkt'?'t-status':'l-status').value;
+  const grp = document.getElementById(type==='tkt'?'t-paid-group':'l-paid-group');
+  grp.style.display = (st==='Partially Paid'||st==='Down Payment') ? 'block' : 'none';
+}
+
+function calcProfit(type) {
+  const p = type==='tkt';
+  const qty  = +(p?document.getElementById('t-qty').value:document.getElementById('l-qty').value)||0;
+  const price= +(p?document.getElementById('t-price').value:document.getElementById('l-price').value)||0;
+  const hpp  = +(p?document.getElementById('t-hpp').value:document.getElementById('l-hpp').value)||0;
+  const comm = +(p?document.getElementById('t-comm').value:document.getElementById('l-comm').value)||0;
+  const total = qty*price, tHPP=qty*hpp, tComm=qty*comm, profit=total-tHPP-tComm;
+  const pfx = p?'t':'l';
+  document.getElementById(pfx+'c-total').textContent  = fmt(total);
+  document.getElementById(pfx+'c-hpp').textContent    = fmt(tHPP);
+  document.getElementById(pfx+'c-comm').textContent   = fmt(tComm);
+  const el = document.getElementById(pfx+'c-profit');
+  el.textContent = fmt(profit);
+  el.className = 'cv '+(profit>=0?'profit':'loss');
+}
+
+async function submitTxn() {
+  const btn = document.getElementById('submit-btn');
+  const type = S.type;
+  let payload;
+
+  if (type==='tkt') {
+    const cust=document.getElementById('t-customer').value.trim();
+    const pass=document.getElementById('t-passenger').value.trim();
+    const route=document.getElementById('t-route').value.trim();
+    const fdate=document.getElementById('t-flightdate').value;
+    const airl=document.getElementById('t-airline').value.trim();
+    const qty=+document.getElementById('t-qty').value||1;
+    const price=+document.getElementById('t-price').value||0;
+    const hpp=+document.getElementById('t-hpp').value||0;
+    const comm=+document.getElementById('t-comm').value||0;
+    if (!cust||!route||!fdate||!airl||!price) { showToast('⚠️ Fill all required fields'); return; }
+    payload = {action:'addTransaction',sheetName:'Flight Tickets',agent:S.user,
+      customer:cust,passenger:pass,route,flightDate:fdate,airline:airl,
+      qty,unitPrice:price,hpp,commission:comm,
+      method:document.getElementById('t-method').value,
+      status:document.getElementById('t-status').value,
+      amtPaid:+document.getElementById('t-paid').value||0,
+      notes:document.getElementById('t-notes').value};
+  } else {
+    const cust=document.getElementById('l-customer').value.trim();
+    const svc=document.getElementById('l-service').value.trim();
+    const sdate=document.getElementById('l-date').value;
+    const qty=+document.getElementById('l-qty').value||1;
+    const price=+document.getElementById('l-price').value||0;
+    const hpp=+document.getElementById('l-hpp').value||0;
+    const comm=+document.getElementById('l-comm').value||0;
+    if (!cust||!svc||!sdate||!price) { showToast('⚠️ Fill all required fields'); return; }
+    payload = {action:'addTransaction',sheetName:'Visa & LA',agent:S.user,
+      customer:cust,service:svc,serviceDate:sdate,
+      qty,unitPrice:price,hpp,commission:comm,
+      method:document.getElementById('l-method').value,
+      status:document.getElementById('l-status').value,
+      amtPaid:+document.getElementById('l-paid').value||0,
+      notes:document.getElementById('l-notes').value};
+  }
+
+  btn.textContent='⏳ Saving...'; btn.disabled=true;
+
+  if (S.apiUrl) {
+    try {
+      const res = await fetch(S.apiUrl, {method:'POST', body:JSON.stringify(payload)});
+      const data = await res.json();
+      if (data.success) {
+        showToast('✅ Saved! ' + data.invoiceNo);
+        await loadData(); resetForm(type); navTo('home');
+      } else { showToast('❌ Error: '+(data.error||'Unknown')); }
+    } catch(e) { showToast('❌ Network error'); }
+  } else {
+    // Demo mode
+    const qty=payload.qty||1, unit=payload.unitPrice||0;
+    const tot=qty*unit, tH=qty*(payload.hpp||0), tC=qty*(payload.commission||0);
+    const profit=tot-tH-tC;
+    const d=new Date(), inv='INV-'+(type==='tkt'?'TKT':'LA')+'-'+String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+'-'+String(S.txns.length+1).padStart(3,'0');
+    S.txns.push({
+      inv, date:today(), type:type==='tkt'?'Flight Ticket':'Visa & LA',
+      agent:S.user, customer:payload.customer,
+      detail:type==='tkt'?`${payload.route} | ${payload.airline} | ${payload.flightDate}`:`${payload.service} | ${payload.serviceDate} | ${qty} pax`,
+      qty, unitPrice:unit, totalPrice:tot, totalHPP:tH, totalComm:tC,
+      profitUnit:unit-(payload.hpp||0)-(payload.commission||0), netProfit:profit,
+      method:payload.method, status:payload.status,
+      amtPaid:payload.amtPaid||0, balance:tot-(payload.amtPaid||0),
+      payDate:payload.amtPaid>0?today():'', notes:payload.notes||''
+    });
+    showToast('✅ Saved (demo)! '+inv);
+    resetForm(type); navTo('home');
+  }
+  btn.textContent='💾 Save Transaction'; btn.disabled=false;
+}
+
+function resetForm(type) {
+  const ids = type==='tkt'
+    ? ['t-customer','t-passenger','t-route','t-flightdate','t-airline','t-notes','t-paid']
+    : ['l-customer','l-service','l-date','l-notes','l-paid'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById(type==='tkt'?'t-qty':'l-qty').value=1;
+  calcProfit(type);
+}
+
+// ══════════════════════════════════════════════
+// INVOICE ACTIONS
+// ══════════════════════════════════════════════
+function buildInvText(t, wa=false) {
+  const isP = t.status==='Partially Paid'||t.status==='Down Payment';
+  const sep = wa ? '%0A' : '\n';
+  const b = wa ? '*' : '';
+  const text = [
+    `${b}INVOICE — JAZERA TRAVEL AGENCY${b}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `Invoice No : ${b}${t.inv}${b}`,
+    `Date       : ${t.date}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `Billed To  : ${b}${t.customer}${b}`,
+    `Service    : ${t.detail}`,
+    `Qty        : ${t.qty} pax`,
+    `Unit Price : ${fmt(t.unitPrice)}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `${b}GRAND TOTAL : ${fmt(t.totalPrice)}${b}`,
+    ...(isP ? [`Amount Paid : ${fmt(t.amtPaid)}`, `${b}Balance Due : ${fmt(t.balance)}${b}`] : []),
+    `Status     : ${t.status}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION`,
+    `📱 Confirm: +62 857-8170-7662`,
+    ``,
+    `_Thank you for trusting Jazera Travel Agency! 🙏_`
+  ].join(wa ? '%0A' : '\n');
+  return text;
+}
+
+function copyInv(inv) {
+  const t = S.txns.find(x=>x.inv===inv);
+  if (!t) return;
+  const text = buildInvText(t).replace(/\n/g,'\n');
+  navigator.clipboard?.writeText(text.replace(/\n/g,'\n'))
+    .then(()=>showToast('📋 Invoice copied!'))
+    .catch(()=>showToast('⚠️ Copy not supported'));
+}
+
+function shareInv(inv) {
+  const t = S.txns.find(x=>x.inv===inv);
+  if (!t) return;
+  const isP = t.status==='Partially Paid'||t.status==='Down Payment';
+  const lines = [
+    `*INVOICE — JAZERA TRAVEL AGENCY*`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `Invoice No : *${t.inv}*`,
+    `Date       : ${t.date}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `Billed To  : *${t.customer}*`,
+    `Service    : ${t.detail}`,
+    `Qty        : ${t.qty} pax`,
+    `Unit Price : ${fmt(t.unitPrice)}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `*GRAND TOTAL : ${fmt(t.totalPrice)}*`,
+    ...(isP?[`Amount Paid : ${fmt(t.amtPaid)}`,`*Balance Due : ${fmt(t.balance)}*`]:[]),
+    `Status     : ${t.status}`,
+    `━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏦 BCA · 1450130733`,
+    `a.n. HUSNI ISKANDAR NASUTION`,
+    `📱 Konfirmasi: +62 857-8170-7662`,
+    ``,
+    `_Terima kasih telah mempercayakan perjalanan Anda kepada Jazera Travel Agency! 🙏_`
+  ];
+  const text = lines.join('\n');
+  if (navigator.share) {
+    navigator.share({title:'Invoice '+t.inv, text: text.replace(/\*/g,'')}).catch(()=>{});
+  } else {
+    const waUrl = 'https://wa.me/?text=' + encodeURIComponent(text.replace(/\*/g,''));
+    window.open(waUrl, '_blank');
+  }
+}
+
+// ══════════════════════════════════════════════
+// PROFILE & SETUP
+// ══════════════════════════════════════════════
+function showProfile() {
+  document.getElementById('profile-body').innerHTML = `
+    <div class="profile-item"><span class="profile-item-label">Name</span><span class="profile-item-value">${AGENT_NAMES[S.user]||S.user}</span></div>
+    <div class="profile-item"><span class="profile-item-label">API Status</span><span class="profile-item-value" style="color:${S.apiUrl?'var(--green)':'var(--gold-dark)'}">${S.apiUrl?'✅ Connected':'⚠️ Demo Mode'}</span></div>
+    <div class="profile-item" onclick="showSetup();closeModal('modal-profile')" style="cursor:pointer"><span class="profile-item-label">⚙️ Configure API URL</span><span class="profile-item-value">›</span></div>`;
+  openModal('modal-profile');
+}
+
+function showSetup() {
+  document.getElementById('api-url-input').value = S.apiUrl;
+  openModal('modal-setup');
+}
+
+function saveUrl() {
+  const url = document.getElementById('api-url-input').value.trim();
+  S.apiUrl = url;
+  localStorage.setItem('jazera_api_url', url);
+  closeModal('modal-setup');
+  document.getElementById('setup-banner').style.display = url ? 'none' : 'block';
+  loadData();
+  showToast(url ? '✅ Connected!' : '⚠️ Demo mode');
+}
+
+// ══════════════════════════════════════════════
+// MODAL & TOAST HELPERS
+// ══════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function showToast(msg, ms=2500) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+document.querySelectorAll('.modal-overlay').forEach(el=>{
+  el.addEventListener('click', e=>{ if(e.target===el) el.classList.remove('open'); });
+});
+
+// Init
+calcProfit('tkt'); calcProfit('la');
+</script>
+</body>
+</html>
