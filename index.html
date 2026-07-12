@@ -918,9 +918,8 @@ function buildInvText(t, wa=false) {
     `Status     : ${t.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━`,
     `🏦 BCA · 1450130733 · a.n. HUSNI ISKANDAR NASUTION`,
-    `📱 Confirm: +62 857-8170-7662`,
     ``,
-    `_Thank you for trusting Jazera Travel Agency! 🙏_`
+    `_Thank you for trusting Jazera Travel Agency!_`
   ].join(wa ? '%0A' : '\n');
   return text;
 }
@@ -1034,7 +1033,7 @@ function previewInvoice(inv, mode) {
   });
 
   document.getElementById('inv-render-area').innerHTML = `
-    <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:500px;margin:0 auto">
+    <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:420px;margin:0 auto">
       <div style="
     display:flex;
     align-items:center;
@@ -1067,7 +1066,7 @@ function previewInvoice(inv, mode) {
 
         <div style="
             font-size:12px;
-            color:#666;
+            color:#2a1417;
             letter-spacing:2px;
             margin-top:3px;
         ">
