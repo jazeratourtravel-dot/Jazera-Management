@@ -130,19 +130,19 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
 
 /* ── INVOICE CARD ── */
 .inv-card{background:white;border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--maroon)}
-.inv-card.la{border-left-color:#5B2C8D}
+.inv-card.la{border-left-color:#8B0000}
 .inv-card.cmb{border-left-color:var(--gold-dark)}
 .inv-company{font-size:15px;font-weight:800;color:var(--maroon);margin-bottom:2px}
-.inv-card.la .inv-company{color:#5B2C8D}
+.inv-card.la .inv-company{color:#8B0000}
 .inv-card.cmb .inv-company{color:var(--gold-dark)}
 .inv-meta{font-size:11px;color:var(--muted);margin-bottom:12px}
 .inv-divider{height:1px;background:var(--border);margin:10px 0}
 .inv-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
 .inv-table th{background:var(--maroon);color:white;padding:7px 6px;text-align:left;font-size:10px}
-.inv-card.la .inv-table th{background:#5B2C8D}
+.inv-card.la .inv-table th{background:#8B0000}
 .inv-table td{padding:7px 6px;border-bottom:1px solid var(--border);vertical-align:middle}
 .inv-total{display:flex;justify-content:space-between;align-items:center;background:var(--maroon);color:white;border-radius:8px;padding:10px 13px;margin-top:8px}
-.inv-card.la .inv-total{background:#5B2C8D}
+.inv-card.la .inv-total{background:#8B0000}
 .inv-card.cmb .inv-total{background:var(--gold-dark)}
 .inv-total-label{font-size:12px;font-weight:600}
 .inv-total-value{font-size:15px;font-weight:800}
@@ -229,7 +229,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
        style="width:80px;height:80px;object-fit:contain;">
 </div>
   <div class="login-brand">
-    <h2>JAZERA</h2>
+  <h2 style="font-family:Cambria,Georgia,serif">JAZERA</h2>
     <p>Travel Agency Management</p>
   </div>
   <div class="login-card">
@@ -1034,11 +1034,19 @@ function previewInvoice(inv, mode) {
 
   document.getElementById('inv-render-area').innerHTML = `
     <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:420px;margin:0 auto">
-      <div style="text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid ${accentBg}">
-  <div style="font-size:22px;font-weight:900;color:${accentBg};letter-spacing:2px">JAZERA</div>
-  <div style="font-size:11px;color:#777;letter-spacing:1px;margin-top:2px">TRAVEL AGENCY</div>
-  <div style="font-size:9px;color:#aaa;margin-top:4px">Flight Tickets • Visa & Landing Arrangement • Tour Packages</div>
-</div>
+      <div style="padding-bottom:14px;margin-bottom:16px;border-bottom:2px solid ${accentBg}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+          <img src="logo1.png" style="width:52px;height:52px;object-fit:contain;flex-shrink:0"
+               onerror="this.style.display='none'">
+          <div>
+            <div style="font-size:22px;font-weight:900;color:${accentBg};letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
+            <div style="font-size:10px;color:#777;letter-spacing:1px;font-family:Arial,sans-serif">TRAVEL AGENCY</div>
+          </div>
+        </div>
+        <div style="font-size:9px;color:#aaa;margin-top:4px">Flight Tickets • Visa & Landing Arrangement • Tour Packages</div>
+        <div style="font-size:9px;color:#aaa;margin-top:3px">📍 Al Khaifa Al Zaher St. Bld. 60/01, 7th District, Nasr City, Cairo</div>
+        <div style="font-size:9px;color:#aaa;margin-top:2px">📞 +62 857-8170-7662 / +20 109 579 1053 &nbsp;|&nbsp; ✉ jazeratourtravel@gmail.com</div>
+      </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
         <div style="font-size:24px;font-weight:900;color:${accentBg}">INVOICE</div>
         <span style="background:${sbg};color:${sfg};font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">${t.status.toUpperCase()}</span>
@@ -1231,10 +1239,10 @@ function generateCombineInvoice() {
   };
 
   closeModal('modal-combine');
-  previewInvoice(combined.inv, null);
 
   // Override render with combined data (re-render)
   setTimeout(() => {
+    openModal('inv-render-modal');
     const isP  = status === 'Down Payment' || status === 'Partially Paid';
     const sbg  = status==='Paid'?'#FFF8DC':(status==='Unpaid'?'#FDECEA':'#FFF3CD');
     const sfg  = status==='Paid'?'#7D5A00':(status==='Unpaid'?'#C0392B':'#E67E22');
@@ -1250,10 +1258,18 @@ function generateCombineInvoice() {
     });
     document.getElementById('inv-render-area').innerHTML = `
       <div style="font-family:Arial,sans-serif;padding:24px;background:white;max-width:420px;margin:0 auto">
-        <div style="text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid ${accB}">
-          <div style="font-size:22px;font-weight:900;color:${accB};letter-spacing:2px">JAZERA</div>
-          <div style="font-size:11px;color:#777;letter-spacing:1px;margin-top:2px">TRAVEL AGENCY</div>
+        <div style="padding-bottom:14px;margin-bottom:16px;border-bottom:2px solid ${accB}">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+            <img src="logo1.png" style="width:52px;height:52px;object-fit:contain;flex-shrink:0"
+                 onerror="this.style.display='none'">
+            <div>
+              <div style="font-size:22px;font-weight:900;color:${accB};letter-spacing:2px;font-family:Cambria,Georgia,serif">JAZERA</div>
+              <div style="font-size:10px;color:#777;letter-spacing:1px;font-family:Arial,sans-serif">TRAVEL AGENCY</div>
+            </div>
+          </div>
           <div style="font-size:9px;color:#aaa;margin-top:4px">Flight Tickets • Visa & Landing Arrangement • Tour Packages</div>
+          <div style="font-size:9px;color:#aaa;margin-top:3px">📍 Al Khaifa Al Zaher St. Bld. 60/01, 7th District, Nasr City, Cairo</div>
+          <div style="font-size:9px;color:#aaa;margin-top:2px">📞 +62 857-8170-7662 / +20 109 579 1053 &nbsp;|&nbsp; ✉ jazeratourtravel@gmail.com</div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
           <div style="font-size:24px;font-weight:900;color:${accB}">INVOICE</div>
