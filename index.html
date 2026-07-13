@@ -303,7 +303,11 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
           <textarea id="t-customer" placeholder="e.g. Budi Santoso&#10;Siti Rahayu&#10;Ahmad Fauzi"
             rows="3" style="resize:none;line-height:1.5"></textarea>
         </div>
-        <div class="form-group"><label>Passenger Name *</label><input type="text" id="t-passenger" placeholder="e.g. Budi Santoso"></div>
+        <div class="form-group">
+          <label>Passenger Name * <span style="font-size:10px;color:var(--muted)">(Enter = new line for multiple pax)</span></label>
+          <textarea id="t-passenger" placeholder="e.g. Budi Santoso&#10;Siti Rahayu&#10;Ahmad Fauzi"
+            rows="3" style="resize:none;line-height:1.5"></textarea>
+        </div>
         <div class="section-title" style="margin-top:14px">Flight Details</div>
         <div class="form-group"><label>Route *</label><input type="text" id="t-route" placeholder="e.g. CGK → DPS"></div>
         <div class="form-row">
@@ -325,11 +329,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
         </div>
         <div class="form-group">
           <label>Agent Name *</label>
-          <select id="t-agent">
+          <select id="t-agent" onchange="toggleAgentInput('t')">
             <option value="husni">Husni</option>
-            <option value="fathon">Fathon</option>
-            <option value="rina">Rina</option>
+            <option value="__other__">Type Agent Name...</option>
           </select>
+          <input type="text" id="t-agent-custom" placeholder="Type agent name here"
+            style="display:none;margin-top:6px">
         </div>
         <div class="form-group">
           <label>Payment Date</label>
@@ -369,11 +374,12 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sa
         </div>
         <div class="form-group">
           <label>Agent Name *</label>
-          <select id="l-agent">
+          <select id="l-agent" onchange="toggleAgentInput('l')">
             <option value="husni">Husni</option>
-            <option value="fathon">Fathon</option>
-            <option value="rina">Rina</option>
+            <option value="__other__">Type Agent Name...</option>
           </select>
+          <input type="text" id="l-agent-custom" placeholder="Type agent name here"
+            style="display:none;margin-top:6px">
         </div>
         <div class="form-group">
           <label>Payment Date</label>
@@ -886,7 +892,9 @@ async function submitTxn() {
     payload = {action:'addTransaction',sheetName:'Flight Tickets',agent:S.user,
       customer:cust,passenger:pass,route,flightDate:fdate,airline:airl,
       qty,unitPrice:price,hpp,commission:comm,
-      agent:  document.getElementById('t-agent').value,
+      agent: document.getElementById('t-agent').value === '__other__'
+             ? document.getElementById('t-agent-custom').value.trim() || 'Husni'
+             : document.getElementById('t-agent').value,
       method: document.getElementById('t-method').value,
       status: document.getElementById('t-status').value,
       amtPaid:+document.getElementById('t-paid-input').value||0,
@@ -904,7 +912,9 @@ async function submitTxn() {
     payload = {action:'addTransaction',sheetName:'Visa & LA',agent:S.user,
       customer:cust,service:svc,serviceDate:sdate,
       qty,unitPrice:price,hpp,commission:comm,
-      agent:  document.getElementById('l-agent').value,
+      agent: document.getElementById('l-agent').value === '__other__'
+             ? document.getElementById('l-agent-custom').value.trim() || 'Husni'
+             : document.getElementById('l-agent').value,
       method: document.getElementById('l-method').value,
       status: document.getElementById('l-status').value,
       amtPaid:+document.getElementById('l-paid-input').value||0,
@@ -947,8 +957,13 @@ async function submitTxn() {
 
 function resetForm(type) {
   const ids = type==='tkt'
-    ? ['t-customer','t-passenger','t-route','t-flightdate','t-airline','t-notes','t-paid-input','t-paydate']
-    : ['l-customer','l-service','l-date','l-notes','l-paid-input','l-paydate'];
+    ? ['t-customer','t-passenger','t-route','t-flightdate','t-airline','t-notes','t-paid-input','t-paydate','t-agent-custom']
+    : ['l-customer','l-service','l-date','l-notes','l-paid-input','l-paydate','l-agent-custom'];
+  // Reset agent dropdown back to Husni
+  const agentSel = document.getElementById(type==='tkt'?'t-agent':'l-agent');
+  if (agentSel) agentSel.value = 'husni';
+  const agentCustom = document.getElementById(type==='tkt'?'t-agent-custom':'l-agent-custom');
+  if (agentCustom) agentCustom.style.display = 'none';
   ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById(type==='tkt'?'t-qty':'l-qty').value=1;
   calcProfit(type);
@@ -1635,6 +1650,17 @@ async function deleteTransaction(inv) {
   if (S.screen === 'database') renderDb();
   else if (S.screen === 'invoice') renderInv();
   else renderDash();
+}
+  function toggleAgentInput(prefix) {
+  const sel    = document.getElementById(prefix + '-agent');
+  const custom = document.getElementById(prefix + '-agent-custom');
+  if (sel.value === '__other__') {
+    custom.style.display = 'block';
+    custom.focus();
+  } else {
+    custom.style.display = 'none';
+    custom.value = '';
+  }
 }
   // Init
 calcProfit('tkt'); calcProfit('la');
